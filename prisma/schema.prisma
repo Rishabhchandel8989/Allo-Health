@@ -47,3 +47,11 @@ model Reservation {
 
   inventory   Inventory @relation(fields: [inventoryId], references: [id])
 }
+
+model IdempotencyRecord {
+  key          String   @id
+  status       String   // "IN_PROGRESS" | "COMPLETED"
+  responseBody String?
+  statusCode   Int?
+  createdAt    DateTime @default(now())
+}

@@ -66,7 +66,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
     setProcessing(true);
     setError(null);
     try {
-      const res = await fetch(`/api/reservations/${id}/confirm`, { method: 'POST' });
+      const idempotencyKey = crypto.randomUUID();
+      const res = await fetch(`/api/reservations/${id}/confirm`, { 
+        method: 'POST',
+        headers: { 'Idempotency-Key': idempotencyKey }
+      });
       const data = await res.json();
       if (!res.ok) {
         if (res.status === 410) setStatus('EXPIRED');

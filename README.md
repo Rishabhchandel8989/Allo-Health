@@ -46,3 +46,13 @@ Reservations that aren't confirmed before `expiresAt` must be released automatic
 
 2. **Just-In-Time (Lazy) Expiry Validation**
    To prevent race conditions between the cron worker and a user attempting to confirm an expired checkout, the confirm endpoint (`POST /api/reservations/:id/confirm`) implements a just-in-time check. If a user attempts to confirm a reservation that has expired, the transaction instantly intercepts it, forces the release of the units, and returns a `410` error—even if the cron job hasn't swept it yet. This guarantees absolute correctness under all concurrency scenarios.
+## Idempotency (Bonus)
+
+Idempotency is implemented for the reserve and confirm endpoints to ensure that retried requests do not result in duplicated side effects (e.g., reserving stock twice).
+
+**How it works:**
+1. The client sends an `Idempotency-Key` header with their request.
+2. The server intercepts the request and checks the database for an `IdempotencyRecord` matching the key.
+3. If the record exists and is `COMPLETED`, the server returns the cached `responseBody` and `statusCode` directly, skipping the handler.
+4. If the record is `IN_PROGRESS`, the server returns a `409 Conflict` (or `425 Too Early`), indicating the request is already being processed.
+5. If the record doesn't exist, the server creates an `IN_PROGRESS` record, executes the handler, and then updates the record to `COMPLETED` with the serialized response before returning it to the client.

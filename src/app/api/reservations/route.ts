@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { withIdempotency } from '@/lib/idempotency';
 
 export async function POST(req: Request) {
-  try {
+  return withIdempotency(req, async () => {
+    try {
     const { inventoryId, quantity } = await req.json();
 
     if (!inventoryId || !quantity || quantity <= 0) {
@@ -35,8 +37,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(reservation, { status: 201 });
-  } catch (error) {
-    console.error('Reservation error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+    } catch (error) {
+      console.error('Reservation error:', error);
+      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+  });
 }

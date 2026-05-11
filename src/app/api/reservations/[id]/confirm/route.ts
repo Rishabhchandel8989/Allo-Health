@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { withIdempotency } from '@/lib/idempotency';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
+  return withIdempotency(req, async () => {
+    try {
     const { id } = await params;
 
     const result = await prisma.$transaction(async (tx) => {
@@ -49,17 +51,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     });
 
     return NextResponse.json(result);
-  } catch (error: any) {
-    if (error.message === 'NOT_FOUND') {
-      return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
+    } catch (error: any) {
+      if (error.message === 'NOT_FOUND') {
+        return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
+      }
+      if (error.message === 'EXPIRED') {
+        return NextResponse.json({ error: 'Reservation has expired' }, { status: 410 });
+      }
+      if (error.message === 'ALREADY_CONFIRMED') {
+        return NextResponse.json({ error: 'Reservation already confirmed' }, { status: 400 });
+      }
+      console.error('Confirm error:', error);
+      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
-    if (error.message === 'EXPIRED') {
-      return NextResponse.json({ error: 'Reservation has expired' }, { status: 410 });
-    }
-    if (error.message === 'ALREADY_CONFIRMED') {
-      return NextResponse.json({ error: 'Reservation already confirmed' }, { status: 400 });
-    }
-    console.error('Confirm error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+  });
 }

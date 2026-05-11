@@ -51,9 +51,13 @@ export default function Home() {
     setReservingId(inventoryId);
     setError(null);
     try {
+      const idempotencyKey = crypto.randomUUID();
       const res = await fetch('/api/reservations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyKey
+        },
         body: JSON.stringify({ inventoryId, quantity: 1 }),
       });
       
