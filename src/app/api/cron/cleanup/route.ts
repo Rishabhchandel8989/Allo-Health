@@ -22,9 +22,9 @@ export async function GET() {
               data: { status: 'RELEASED' }
             });
             await tx.$executeRaw`
-              UPDATE Inventory
-              SET reservedUnits = reservedUnits - ${reservation.quantity}
-              WHERE id = ${reservation.inventoryId}
+              UPDATE "Inventory"
+              SET "reservedUnits" = "reservedUnits" - ${reservation.quantity}
+              WHERE "id" = ${reservation.inventoryId}
             `;
             releasedCount++;
           }

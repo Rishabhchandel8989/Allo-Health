@@ -26,9 +26,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         // Auto-release if expired during confirm attempt
         await tx.reservation.update({ where: { id }, data: { status: 'RELEASED' } });
         await tx.$executeRaw`
-          UPDATE Inventory 
-          SET reservedUnits = reservedUnits - ${reservation.quantity} 
-          WHERE id = ${reservation.inventoryId}
+          UPDATE "Inventory" 
+          SET "reservedUnits" = "reservedUnits" - ${reservation.quantity} 
+          WHERE "id" = ${reservation.inventoryId}
         `;
         throw new Error("EXPIRED");
       }
@@ -41,10 +41,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
       // Commit the reservation (decrement total and reserved)
       await tx.$executeRaw`
-        UPDATE Inventory
-        SET totalUnits = totalUnits - ${reservation.quantity},
-            reservedUnits = reservedUnits - ${reservation.quantity}
-        WHERE id = ${reservation.inventoryId}
+        UPDATE "Inventory"
+        SET "totalUnits" = "totalUnits" - ${reservation.quantity},
+            "reservedUnits" = "reservedUnits" - ${reservation.quantity}
+        WHERE "id" = ${reservation.inventoryId}
       `;
 
       return updatedReservation;

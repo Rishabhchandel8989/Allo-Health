@@ -17,9 +17,9 @@ export async function POST(req: Request) {
     // Atomically increment reservedUnits only if enough stock is available.
     // Using raw SQL to avoid race conditions.
     const updatedRows = await prisma.$executeRaw`
-      UPDATE Inventory
-      SET reservedUnits = reservedUnits + ${quantity}
-      WHERE id = ${inventoryId} AND (totalUnits - reservedUnits) >= ${quantity}
+      UPDATE "Inventory"
+      SET "reservedUnits" = "reservedUnits" + ${quantity}
+      WHERE "id" = ${inventoryId} AND ("totalUnits" - "reservedUnits") >= ${quantity}
     `;
 
     if (updatedRows === 0) {

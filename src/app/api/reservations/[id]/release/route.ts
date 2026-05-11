@@ -23,11 +23,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       });
 
       // Free up the reserved stock
-      await tx.$executeRaw`
-        UPDATE Inventory
-        SET reservedUnits = reservedUnits - ${reservation.quantity}
-        WHERE id = ${reservation.inventoryId}
-      `;
+        await tx.$executeRaw`
+          UPDATE "Inventory"
+          SET "reservedUnits" = "reservedUnits" - ${reservation.quantity}
+          WHERE "id" = ${reservation.inventoryId}
+        `;
 
       return updatedReservation;
     });
